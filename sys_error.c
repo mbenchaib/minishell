@@ -6,13 +6,13 @@
 /*   By: mben-cha <mben-cha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 19:52:59 by mben-cha          #+#    #+#             */
-/*   Updated: 2025/08/04 17:10:01 by mben-cha         ###   ########.fr       */
+/*   Updated: 2025/08/11 21:35:20 by mben-cha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-int	check_fail(int result, char *context)
+int	check_fail(int result, char *context, t_shell *shell)
 {
 	if (result == -1)
 	{
@@ -21,6 +21,7 @@ int	check_fail(int result, char *context)
 		write(2, ": ", 2);
 		write(2, strerror(errno), ft_strlen(strerror(errno)));
 		write(2, "\n", 1);
+		shell->last_exit_status = 1;
 		return (1);
 	}
 	return (0);

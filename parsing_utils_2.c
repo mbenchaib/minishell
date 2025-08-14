@@ -6,7 +6,7 @@
 /*   By: mben-cha <mben-cha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/18 18:11:40 by ytlidi            #+#    #+#             */
-/*   Updated: 2025/08/04 12:15:53 by mben-cha         ###   ########.fr       */
+/*   Updated: 2025/08/10 16:46:53 by mben-cha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ static void	calc_env_expanding(t_env *env, t_parsing *parsing, int i, int *len)
 	t_env	*env_line;
 
 	env_line = find_env_exp(env, parsing, i);
-	if (env_line != NULL)
+	if (env_line != NULL && env_line->value != NULL)
 		*len += ft_strlen(env_line->value);
 }
 

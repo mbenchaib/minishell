@@ -6,7 +6,7 @@
 /*   By: mben-cha <mben-cha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/30 23:18:34 by mben-cha          #+#    #+#             */
-/*   Updated: 2025/08/04 17:12:08 by mben-cha         ###   ########.fr       */
+/*   Updated: 2025/08/11 21:46:37 by mben-cha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ int	wait_for_child(t_command *cmd, t_shell *shell)
 		if (cmd->pid > 0)
 		{
 			if (waitpid(cmd->pid, &status, 0) == -1)
-				return (check_fail(-1, "waitpid"));
+				return (check_fail(-1, "waitpid", shell));
 		}
 		if (!cmd->next && cmd->pid > 0)
 			handle_child_status(status, shell);

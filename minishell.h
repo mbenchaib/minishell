@@ -6,7 +6,7 @@
 /*   By: mben-cha <mben-cha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/25 16:41:42 by ytlidi            #+#    #+#             */
-/*   Updated: 2025/08/09 06:32:36 by mben-cha         ###   ########.fr       */
+/*   Updated: 2025/08/13 17:04:36 by mben-cha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,7 +131,7 @@ char			**ft_split(char const *s, char c);
 char			*ft_strjoin_with(char const *s1, char const *s2, char sep);
 size_t			ft_strlcpy(char *dst, const char *src, size_t dstsize);
 int				valid_tokens(t_token *head, t_shell *shell);
-int				check_fail(int result, char *msg);
+int				check_fail(int result, char *msg, t_shell *shell);
 int				setup_redirections(int type, char *filename);
 int				execute(t_command *cmd_list, t_env **env, t_shell *shell);
 int				ft_strcmp(const char *s1, const char *s2);
@@ -145,7 +145,7 @@ int				print_export_error(char *identifier);
 t_env			*find_env(t_env *env, char *key);
 int				update_env(t_env *env, char *key, char *new_value);
 void			print_exit_error(char *arg);
-int				setup_pipe(int *pipefd);
+int				setup_pipe(int *pipefd, t_shell *shell);
 t_env			*init_env(char **envp);
 int				ft_strcmp_exp(char *s1, char *s2);
 int				strlen_before_spaces_or_delimiter(char *str);
@@ -189,8 +189,9 @@ int				ft_isalpha(int c);
 void			free_split(char **array);
 void			quick_sort_env(t_env **array, int low, int high);
 t_env			**get_sorted_env_ptr_array(t_env *env_list);
-int				restore_stdio(int saved_stdin, int saved_stdout);
-int				handle_redirections(t_redirection *redirect);
+int				restore_stdio(int saved_stdin, int saved_stdout,
+					t_shell *shell);
+int				handle_redirections(t_redirection *redirect, t_shell *shell);
 int				ft_atoi(const char *str);
 char			*ft_itoa(int n);
 void			prompt_sigint_handler(int sig);
@@ -219,13 +220,13 @@ void			*ft_memcpy(void *dest, const void *src, size_t n);
 void			free_list(t_token *list);
 char			**ft_split_whitespace(char const *s);
 void			free_hd_parts(t_hdpart *part);
-int				init_fd_backup(t_fd_backup *fd_backup);
+int				init_fd_backup(t_fd_backup *fd_backup, t_shell *shell);
 int				wait_for_child(t_command *cmd, t_shell *shell);
 int				prepare_heredocs(t_command *cmd, t_env **env, t_shell *shell);
 void			reset_all_heredoc_fds(t_command *cmd_list);
 void			reset_heredoc_fd(t_command *cmd);
 int				handle_pipe_fds(t_command *cmd, int *prev_read_end,
-					int *pipefd);
+					int *pipefd, t_shell *shell);
 int				args_count(t_token *current_token, t_env *env, t_shell *shell,
 					t_token **list);
 void			list_to_args(t_token *list, char **args);
@@ -235,7 +236,7 @@ int				is_export_valid(char *arg);
 void			init_exec_context(t_exec_context *ctx, t_env **env,
 					t_shell *shell);
 void			reset_child_state(void);
-int				skip_if_empty(t_command *cmd);
+int				skip_if_empty(t_command *cmd, t_shell *shell);
 void			prepare_next_cmd(t_command *cmd, int *prev_read_end,
 					int *pipefd);
 void			add_plain_text_part(t_hdpart **parts, char *line, int i, int j);
@@ -246,5 +247,6 @@ int				print_unset_error(char *identifier);
 t_hdpart		*ft_lstnew_hd(char *str, int expand);
 void			ft_lstadd_back_hd(t_hdpart **part, t_hdpart *new);
 void			print_home_not_set_error(void);
-void			cleanup_fork(int *pipefd, int *prev_read_end);
+int				fork_fail(int *pipefd, int *prev_read_end, char *cmd_path,
+					t_shell *shell);
 #endif

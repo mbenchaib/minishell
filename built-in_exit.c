@@ -6,7 +6,7 @@
 /*   By: mben-cha <mben-cha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/28 18:42:50 by mben-cha          #+#    #+#             */
-/*   Updated: 2025/08/04 18:11:11 by mben-cha         ###   ########.fr       */
+/*   Updated: 2025/08/11 20:10:54 by mben-cha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,9 +68,8 @@ int	do_exit(t_command *cmd, t_shell *shell)
 {
 	long int	exit_code;
 
-	if (cmd->pipe_in || cmd->pipe_out)
-		return (0);
-	write(1, "exit\n", 6);
+	if (!cmd->pipe_in && !cmd->pipe_out)
+		write(1, "exit\n", 6);
 	if (!cmd->args[1])
 		exit (shell->last_exit_status);
 	if (is_exit_valid(cmd->args[1]))

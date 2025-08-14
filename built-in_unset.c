@@ -6,7 +6,7 @@
 /*   By: mben-cha <mben-cha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/27 18:49:48 by mben-cha          #+#    #+#             */
-/*   Updated: 2025/08/06 01:00:28 by mben-cha         ###   ########.fr       */
+/*   Updated: 2025/08/12 19:38:58 by mben-cha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,7 @@ static void	unset_env_key(t_env **env, char *key)
 		return ;
 	else
 	{
-		if (prev_env == *env)
+		if (prev_env == *env && !strcmp(prev_env->key, key))
 		{
 			*env = prev_env->next;
 			free_env_node(prev_env);

@@ -6,24 +6,23 @@
 /*   By: mben-cha <mben-cha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/19 13:58:43 by mben-cha          #+#    #+#             */
-/*   Updated: 2025/08/09 18:25:20 by mben-cha         ###   ########.fr       */
+/*   Updated: 2025/08/12 17:17:32 by mben-cha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-static int	handle_direct_builtin(t_command *cmd, t_fd_backup *fd_backup,
-	t_exec_context *ctx)
+static int	handle_direct_builtin(t_command *cmd, t_exec_context *ctx)
 {
-	if (handle_redirections(cmd->rds))
-		return (restore_stdio(fd_backup->saved_stdin, fd_backup->saved_stdout),
-			1);
+	if (handle_redirections(cmd->rds, ctx->shell))
+		return (1);
 	execute_builtin(cmd, ctx->env, ctx->shell);
 	return (0);
 }
 
 static int	prepare_command(t_command *cmd, t_exec_context *ctx)
 {
+	ctx->cmd_path = NULL;
 	ctx->is_builtin = check_builtin(cmd);
 	if (!ctx->is_builtin)
 	{
@@ -44,21 +43,21 @@ static int	handle_command_exec(t_command *cmd, int *pipefd, int *prev_read_end,
 {
 	cmd->pid = fork();
 	if (cmd->pid == -1)
-		return (cleanup_fork(pipefd, prev_read_end), 1);
+		return (fork_fail(pipefd, prev_read_end, ctx->cmd_path, ctx->shell));
 	if (cmd->pid == 0)
 	{
 		reset_child_state();
-		if (handle_pipe_fds(cmd, prev_read_end, pipefd)
-			|| handle_redirections(cmd->rds))
+		if (handle_pipe_fds(cmd, prev_read_end, pipefd, ctx->shell)
+			|| handle_redirections(cmd->rds, ctx->shell))
 			exit(1);
 		if (ctx->is_builtin)
 			execute_builtin(cmd, ctx->env, ctx->shell);
 		else
 		{
 			if (execve(ctx->cmd_path, cmd->args, env_to_arr(*(ctx->env))) == -1)
-				(check_fail(-1, ctx->cmd_path), exit(126));
+				(check_fail(-1, ctx->cmd_path, ctx->shell), exit(126));
 		}
-		exit(0);
+		exit(ctx->shell->last_exit_status);
 	}
 	else
 	{
@@ -69,8 +68,7 @@ static int	handle_command_exec(t_command *cmd, int *pipefd, int *prev_read_end,
 	return (0);
 }
 
-static int	execute_loop(t_command *cmd, t_env **env, t_shell *shell,
-	t_fd_backup *fd_backup)
+static int	execute_loop(t_command *cmd, t_env **env, t_shell *shell)
 {
 	int				pipefd[2];
 	t_exec_context	ctx;
@@ -78,17 +76,17 @@ static int	execute_loop(t_command *cmd, t_env **env, t_shell *shell,
 	init_exec_context(&ctx, env, shell);
 	while (cmd)
 	{
-		if (skip_if_empty(cmd))
+		if (skip_if_empty(cmd, shell))
 			return (1);
 		if (prepare_command(cmd, &ctx))
 		{
 			cmd = cmd->next;
 			continue ;
 		}
-		if ((cmd->pipe_out && setup_pipe(pipefd)))
-			return (1);
+		if ((cmd->pipe_out && setup_pipe(pipefd, shell)))
+			return (free(ctx.cmd_path), 1);
 		if (ctx.is_builtin && !cmd->pipe_in && !cmd->pipe_out)
-			return (handle_direct_builtin(cmd, fd_backup, &ctx));
+			return (handle_direct_builtin(cmd, &ctx));
 		else
 		{
 			if (handle_command_exec(cmd, pipefd, &ctx.prev_read_end, &ctx))
@@ -103,20 +101,21 @@ int	execute(t_command *cmd_list, t_env **env, t_shell *shell)
 {
 	t_fd_backup	fd_backup;
 
-	if (init_fd_backup(&fd_backup))
+	if (init_fd_backup(&fd_backup, shell))
 		return (free_cmd_list(cmd_list), 1);
 	if (prepare_heredocs(cmd_list, env, shell))
 	{
-		restore_stdio(fd_backup.saved_stdin, fd_backup.saved_stdout);
+		restore_stdio(fd_backup.saved_stdin, fd_backup.saved_stdout, shell);
 		return (free_cmd_list(cmd_list), 1);
 	}
-	if (execute_loop(cmd_list, env, shell, &fd_backup))
+	if (execute_loop(cmd_list, env, shell))
 	{
-		restore_stdio(fd_backup.saved_stdin, fd_backup.saved_stdout);
+		restore_stdio(fd_backup.saved_stdin, fd_backup.saved_stdout, shell);
 		wait_for_child(cmd_list, shell);
 		return (free_cmd_list(cmd_list), 1);
 	}
-	restore_stdio(fd_backup.saved_stdin, fd_backup.saved_stdout);
-	wait_for_child(cmd_list, shell);
+	restore_stdio(fd_backup.saved_stdin, fd_backup.saved_stdout, shell);
+	if (wait_for_child(cmd_list, shell))
+		return (free_cmd_list(cmd_list), 1);
 	return (free_cmd_list(cmd_list), 0);
 }

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parsing_utils_1.c                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ytlidi <ytlidi@student.42.fr>              +#+  +:+       +#+        */
+/*   By: mben-cha <mben-cha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/02 18:38:34 by ytlidi            #+#    #+#             */
-/*   Updated: 2025/07/31 20:45:25 by ytlidi           ###   ########.fr       */
+/*   Updated: 2025/08/10 16:47:35 by mben-cha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,8 @@ void	expanding(char *new_str, int *j, char *str_to_add)
 {
 	int	i;
 
+	if (str_to_add == NULL)
+		return ;
 	i = 0;
 	while (str_to_add[i] != '\0')
 	{

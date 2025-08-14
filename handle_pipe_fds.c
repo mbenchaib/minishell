@@ -6,27 +6,28 @@
 /*   By: mben-cha <mben-cha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/01 19:45:30 by mben-cha          #+#    #+#             */
-/*   Updated: 2025/08/04 16:47:16 by mben-cha         ###   ########.fr       */
+/*   Updated: 2025/08/13 16:59:37 by mben-cha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-int	handle_pipe_fds(t_command *cmd, int *prev_read_end, int *pipefd)
+int	handle_pipe_fds(t_command *cmd, int *prev_read_end, int *pipefd,
+	t_shell *shell)
 {
 	int	ret;
 
 	if (cmd->pipe_in && *prev_read_end != -1)
 	{
 		ret = dup2(*prev_read_end, STDIN_FILENO);
-		if (check_fail(ret, "pipe read"))
+		if (check_fail(ret, "pipe read", shell))
 			return (1); 
 		close(*prev_read_end);
 	}
 	if (cmd->pipe_out)
 	{
 		ret = dup2(pipefd[1], STDOUT_FILENO);
-		if (check_fail(ret, "pipe write"))
+		if (check_fail(ret, "pipe write", shell))
 			return (1);
 		close(pipefd[0]);
 		close(pipefd[1]);

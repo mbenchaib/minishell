@@ -6,7 +6,7 @@
 /*   By: mben-cha <mben-cha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/01 03:52:19 by mben-cha          #+#    #+#             */
-/*   Updated: 2025/08/07 18:59:01 by mben-cha         ###   ########.fr       */
+/*   Updated: 2025/08/11 21:56:09 by mben-cha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ int	wait_heredoc(pid_t pid, int *pipefd, t_command *cmd_list, t_shell *shell)
 	set_signal(SIGINT, SIG_IGN);
 	close(pipefd[1]);
 	if (waitpid(pid, &status, 0) == -1)
-		return (check_fail(-1, "waitpid"));
+		return (check_fail(-1, "waitpid", shell));
 	if (WIFSIGNALED(status) && WTERMSIG(status) == SIGINT)
 	{
 		close(pipefd[0]);
@@ -59,9 +59,9 @@ int	wait_heredoc(pid_t pid, int *pipefd, t_command *cmd_list, t_shell *shell)
 	return (0);
 }
 
-static int	do_pipe_and_fork(int pipefd[2], pid_t *pid)
+static int	do_pipe_and_fork(int pipefd[2], pid_t *pid, t_shell *shell)
 {
-	if (setup_pipe(pipefd))
+	if (setup_pipe(pipefd, shell))
 		return (1);
 	*pid = fork();
 	if (*pid == -1)
@@ -81,7 +81,7 @@ static int	process_heredocs(t_command *cmd, t_command *cmd_list, t_env **env,
 	{
 		if (redirect->type == TOKEN_HEREDOC)
 		{
-			if (do_pipe_and_fork(pipefd, &pid))
+			if (do_pipe_and_fork(pipefd, &pid, shell))
 				return (1);
 			if (pid == 0)
 				read_heredoc(redirect, pipefd, env, shell);
